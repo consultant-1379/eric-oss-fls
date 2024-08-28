@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+spec:
+  selector:
+    matchLabels:
+      run: catalog
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: catalog
+    spec:
+      containers:
+      - name: catalog
+        image: catalog_jaimin
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        #command: ["java"]
+        args: ["dbIp=10.110.110.31","dbName=postgres"]

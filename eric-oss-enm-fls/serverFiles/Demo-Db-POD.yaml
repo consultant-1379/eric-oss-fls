@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres 
+  labels:
+    name: postgres
+spec:
+  containers:
+  - image: postgres:11.4 
+    imagePullPolicy : Never
+    name: postgres-node

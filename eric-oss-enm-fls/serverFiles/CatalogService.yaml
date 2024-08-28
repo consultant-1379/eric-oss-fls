@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-db
+spec:
+  selector:
+    matchLabels:
+      run: postgres-db
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: postgres-db
+    spec:
+      containers:
+      - name: postgres-db
+        image: postgres:11.4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        #command: ["java"]
+        #args: ["-jar","S3-1.1.114.jar","-lt","-p","8080:8080"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresdb
+  labels:
+    run: postgresdb
+spec:
+  ports:
+  - port: 5432
+    protocol: TCP
+  selector:
+    run: postgres-db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+spec:
+  selector:
+    matchLabels:
+      run: catalog
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: catalog
+    spec:
+      containers:
+      - name: catalog
+        image: catalog_jaimin
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        #command: ["java"]
+        args: ["serviceName=postgresdb"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+  labels:
+    run: catalog
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    run: catalog

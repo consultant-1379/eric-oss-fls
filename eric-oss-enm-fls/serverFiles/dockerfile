@@ -1,0 +1,12 @@
+FROM   java:8 
+MAINTAINER xpatjai
+ENV     container docker
+COPY    CatalogueService.zip /
+#RUN     yum -y install unzip
+RUN     unzip CatalogueService.zip -d CatalogueService
+RUN chmod 755 /CatalogueService
+RUN chmod 755 /CatalogueService/startCatalogueService.sh
+RUN chmod 755 /CatalogueService/lib/*
+WORKDIR /CatalogueService
+#expose  70
+ENTRYPOINT ["./startCatalogueService.sh"]

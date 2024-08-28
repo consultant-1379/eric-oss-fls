@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: task-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/root/xpatjai/db_data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: task-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-db
+spec:
+  selector:
+    matchLabels:
+      run: postgres-db
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: postgres-db
+    spec:
+      volumes:
+      - name: task-pv-storage
+        persistentVolumeClaim:
+          claimName: task-pv-claim
+      containers:
+      - name: postgres-db
+        image: postgres:11.4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        #command: ["java"]
+        #args: ["-jar","S3-1.1.114.jar","-lt","-p","8080:8080"]
+        volumeMounts:
+        - name: task-pv-storage
+          mountPath: /var/lib/postgresql/data 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresdb
+  labels:
+    run: postgresdb
+spec:
+  ports:
+  - port: 5432
+    protocol: TCP
+  selector:
+    run: postgres-db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+spec:
+  selector:
+    matchLabels:
+      run: catalog
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: catalog
+    spec:
+      containers:
+      - name: catalog
+        image: catalog_jaimin:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        #command: ["java"]
+        #args: ["dbIp=10.102.217.7","dbName=postgres"]
+        args: ["serviceName=postgresdb"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+  labels:
+    run: catalog
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    run: catalog
